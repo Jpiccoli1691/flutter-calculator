@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:expressions/expressions.dart';
+import 'dart:math';
 
 void main() {
   runApp(const MyApp());
@@ -30,6 +31,7 @@ class CalculatorScreen extends StatefulWidget {
 class _CalculatorScreenState extends State<CalculatorScreen> {
   String _expression = '';
   String _result = '';
+  bool _isOpenBracket = true;
 
   void _onButtonPressed(String value) {
     setState(() {
@@ -39,17 +41,35 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _calculateResult();
       } else if (value == 'x²') {
         _expression += '^2';
+      } else if (value == '()') {
+        _expression += _isOpenBracket ? '(' : ')';
+        _isOpenBracket = !_isOpenBracket;
+      } else if (value == '+/-') {
+        _toggleSign();
       } else {
         _expression += value;
       }
     });
   }
 
+  void _toggleSign() {
+    if (_expression.isNotEmpty) {
+      if (_expression.startsWith('-')) {
+        _expression = _expression.substring(1);
+      } else {
+        _expression = '-$_expression';
+      }
+    }
+  }
+
   void _calculateResult() {
     try {
-      final expression = Expression.parse(_expression);
+      String finalExpression = _expression.replaceAll('^2', '**2');
+      final expression = Expression.parse(finalExpression);
       final evaluator = const ExpressionEvaluator();
-      final result = evaluator.eval(expression, {});
+      final result = evaluator.eval(expression, {
+        'pow': pow,
+      });
       setState(() {
         _result = result.toString();
       });
@@ -64,6 +84,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     setState(() {
       _expression = '';
       _result = '';
+      _isOpenBracket = true; // Reset bracket state
     });
   }
 
@@ -108,10 +129,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   children: [
                     Row(
                       children: [
+                        _buildButton('C'),
+                        _buildButton('()'),
+                        _buildButton('%'),
+                        _buildButton('/'),
+                      ],
+                    ),
+                    Row(
+                      children: [
                         _buildButton('7'),
                         _buildButton('8'),
                         _buildButton('9'),
-                        _buildButton('/'),
+                        _buildButton('*'),
                       ],
                     ),
                     Row(
@@ -119,7 +148,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         _buildButton('4'),
                         _buildButton('5'),
                         _buildButton('6'),
-                        _buildButton('*'),
+                        _buildButton('-'),
                       ],
                     ),
                     Row(
@@ -127,23 +156,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         _buildButton('1'),
                         _buildButton('2'),
                         _buildButton('3'),
-                        _buildButton('-'),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        _buildButton('0'),
-                        _buildButton('C'),
-                        _buildButton('='),
                         _buildButton('+'),
                       ],
                     ),
                     Row(
                       children: [
-                        _buildButton('('),
-                        _buildButton(')'),
-                        _buildButton('%'),
-                        _buildButton('x²'),
+                        _buildButton('+/-'),
+                        _buildButton('0'),
+                        _buildButton('.'),
+                        _buildButton('='),
                       ],
                     ),
                   ],
@@ -160,13 +181,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     final isOperator =
         value == '/' || value == '*' || value == '-' || value == '+' || value == '%' || value == 'x²';
     final isEquals = value == '=';
+    final isClear = value == 'C';
     return Expanded(
       child: ElevatedButton(
         onPressed: () => _onButtonPressed(value),
         style: ElevatedButton.styleFrom(
-          backgroundColor: isEquals
-              ? Colors.green
-              : Colors.grey[800], // Button background color
+          backgroundColor: isEquals ? Colors.green : Colors.grey[800], // Button background color
           foregroundColor: Colors.white, // Button text color
           shape: const CircleBorder(), // Circular button shape
           padding: const EdgeInsets.all(24.0),
@@ -175,7 +195,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           value,
           style: TextStyle(
             fontSize: 24,
-            color: isOperator ? Colors.green : Colors.white, // Icon color
+            color: isClear ? Colors.orange : (isOperator ? Colors.green : Colors.white), // Text color
           ),
         ),
       ),
