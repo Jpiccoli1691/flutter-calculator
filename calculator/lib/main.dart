@@ -37,6 +37,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _clear();
       } else if (value == '=') {
         _calculateResult();
+      } else if (value == 'x²') {
+        _expression += '^2';
       } else {
         _expression += value;
       }
@@ -136,6 +138,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         _buildButton('+'),
                       ],
                     ),
+                    Row(
+                      children: [
+                        _buildButton('('),
+                        _buildButton(')'),
+                        _buildButton('%'),
+                        _buildButton('x²'),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -148,7 +158,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   Widget _buildButton(String value) {
     final isOperator =
-        value == '/' || value == '*' || value == '-' || value == '+';
+        value == '/' || value == '*' || value == '-' || value == '+' || value == '%' || value == 'x²';
     final isEquals = value == '=';
     return Expanded(
       child: ElevatedButton(
@@ -158,9 +168,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               ? Colors.green
               : Colors.grey[800], // Button background color
           foregroundColor: Colors.white, // Button text color
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero,
-          ),
+          shape: const CircleBorder(), // Circular button shape
           padding: const EdgeInsets.all(24.0),
         ),
         child: Text(
